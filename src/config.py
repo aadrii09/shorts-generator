@@ -3,10 +3,10 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+ROOT_DIR = Path(__file__).parent.parent
+load_dotenv(ROOT_DIR / ".env")
 
 # Directorios
-ROOT_DIR = Path(__file__).parent.parent
 OUTPUT_DIR = ROOT_DIR / "output"
 TEMP_DIR = ROOT_DIR / "temp"
 ASSETS_DIR = ROOT_DIR / "assets"
