@@ -1,119 +1,124 @@
 # Shorts Generator
 
-Generador automático de vídeos verticales (Shorts/Reels/TikTok) a partir de un prompt.
+Generador automático de vídeos verticales (Shorts / Reels / TikTok) a partir de un prompt, con **interfaz web** y CLI.
 
-Pipeline: **Prompt → Guion (Claude) → Voz (ElevenLabs) → Imágenes (Gemini) → Subtítulos (Whisper) → Vídeo montado (FFmpeg)**
+**Pipeline:** Prompt → Guion (Claude) → Voz (ElevenLabs) → Imágenes (Gemini) → Subtítulos (Whisper) → Vídeo montado (FFmpeg)
 
 ## Requisitos
 
 - Python 3.10+
 - FFmpeg instalado en el sistema
-- Cuentas y API keys de:
-  - [Anthropic](https://console.anthropic.com) (Claude)
-  - [ElevenLabs](https://elevenlabs.io)
-  - [Google AI Studio](https://aistudio.google.com/apikey) (Gemini para imágenes)
+- API keys de: [Anthropic](https://console.anthropic.com), [ElevenLabs](https://elevenlabs.io), [Google AI Studio](https://aistudio.google.com/apikey)
 
 ## Instalación
 
-### 1. Instalar FFmpeg
+### 1. FFmpeg
 
-- **Windows**: `winget install ffmpeg` o descargar de [ffmpeg.org](https://ffmpeg.org/download.html)
+- **Windows**: `winget install ffmpeg`
 - **macOS**: `brew install ffmpeg`
 - **Linux**: `sudo apt install ffmpeg`
 
-Verifica: `ffmpeg -version`
+Verifica con: `ffmpeg -version`
 
-### 2. Clonar y preparar el entorno
+### 2. Entorno Python
 
 ```bash
 cd shorts-generator
 python -m venv venv
 
-# Activar entorno virtual
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+# Activar:
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # macOS/Linux
 
 pip install -r requirements.txt
 ```
 
-### 3. Configurar API keys
-
-Copia `.env.example` a `.env` y rellena tus claves:
+### 3. API keys
 
 ```bash
 cp .env.example .env
 ```
 
-Edita `.env`:
+Edita `.env` con tus claves:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 ELEVENLABS_API_KEY=...
 GOOGLE_API_KEY=...
-ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
+ELEVENLABS_VOICE_ID=XrExE9yKIg1WjnnlVkGX
 ```
 
-## Uso desde VS Code
+## Uso (recomendado: interfaz web)
 
-1. Abre la carpeta del proyecto en VS Code (`File > Open Folder`).
-2. Selecciona el intérprete del venv: `Ctrl+Shift+P` → "Python: Select Interpreter" → elige el del venv.
-3. Abre una terminal integrada (`Ctrl+ñ`).
-4. Ejecuta:
+### Desde VS Code
+
+1. Abre la carpeta en VS Code.
+2. Selecciona intérprete del venv: `Ctrl+Shift+P` → "Python: Select Interpreter".
+3. Pulsa **F5** y elige **"🌐 Servidor Web"**.
+4. Abre [http://127.0.0.1:8000](http://127.0.0.1:8000) en el navegador.
+
+### Desde terminal
 
 ```bash
-python -m src.main "Cuéntame 3 curiosidades sobre los pulpos que no conocía"
+python run_web.py
 ```
 
-El vídeo se genera en `output/short_YYYYMMDD_HHMMSS.mp4`.
+Luego abre [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-### Opciones del CLI
+### La interfaz te deja
+
+- Escribir el prompt del vídeo
+- Elegir duración, idioma, estilo visual
+- Ver progreso en tiempo real (streaming)
+- Reproducir el vídeo generado directamente
+- Descargar el MP4
+- Ver histórico de vídeos generados
+
+## Uso CLI (alternativo)
 
 ```bash
-python -m src.main "tu prompt aquí" [--duration 45] [--voice-id XXX] [--style cinematic]
+python -m src.main "curiosidades sobre los pulpos" --duration 45
 ```
 
-- `--duration`: duración objetivo en segundos (default: 50)
-- `--voice-id`: ID de voz de ElevenLabs (override del .env)
-- `--style`: estilo visual para las imágenes (default: "photorealistic cinematic")
-- `--keep-temp`: no borrar archivos temporales (útil para debug)
+Opciones: `--duration`, `--voice-id`, `--style`, `--language`, `--keep-temp`.
 
-## Estructura del proyecto
+## Estructura
 
 ```
 shorts-generator/
 ├── src/
-│   ├── __init__.py
-│   ├── main.py              # Entry point / CLI
-│   ├── config.py            # Configuración y carga de .env
+│   ├── main.py              # Lógica principal (reutilizable)
+│   ├── config.py
 │   ├── script_generator.py  # Guion con Claude
 │   ├── voice_generator.py   # Voz con ElevenLabs
 │   ├── image_generator.py   # Imágenes con Gemini
 │   ├── subtitle_generator.py# Subtítulos con Whisper
-│   └── video_composer.py    # Ensamblaje con FFmpeg
-├── output/                  # Vídeos finales
+│   └── video_composer.py    # Ensamblaje FFmpeg
+├── web/
+│   ├── server.py            # Backend FastAPI
+│   └── static/index.html    # Frontal
+├── output/                  # Vídeos generados
 ├── temp/                    # Archivos intermedios
-├── assets/                  # Música de fondo opcional
+├── assets/                  # background.mp3 opcional
+├── run_web.py               # Lanzador del servidor
 ├── .env.example
-├── requirements.txt
-└── README.md
+└── requirements.txt
 ```
 
 ## Música de fondo (opcional)
 
-Coloca un archivo `background.mp3` en `assets/` y se mezclará automáticamente con ducking.
+Coloca `background.mp3` en `assets/` y se mezclará automáticamente con ducking.
 
-## Costes estimados por Short
+## Costes aprox por Short
 
 - Claude (guion): ~$0.002
 - ElevenLabs (voz): ~$0.12
 - Gemini (8-10 imágenes): ~$0.30-0.40
 - **Total: ~$0.45 por vídeo**
 
-## Siguientes pasos
+## Próximas ampliaciones sugeridas
 
-Cuando el MVP funcione, añadir módulos en `src/`:
-- `uploader_youtube.py` — subida automática
-- `uploader_tiktok.py`
-- `scheduler.py` — generación programada
+- `src/uploader_youtube.py` — subida automática a YouTube con la API oficial
+- `src/uploader_tiktok.py` — TikTok Content Posting API
+- `src/scheduler.py` — batch y publicación programada
+- Historial persistente en SQLite con metadata
